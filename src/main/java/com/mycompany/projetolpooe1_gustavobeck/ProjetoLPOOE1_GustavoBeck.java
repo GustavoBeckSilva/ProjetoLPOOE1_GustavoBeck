@@ -4,70 +4,63 @@ package com.mycompany.projetolpooe1_gustavobeck;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import model.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import model.*;
 
 public class ProjetoLPOOE1_GustavoBeck {
+
     public static void main(String[] args) {
-        // Configuração inicial do EntityManager
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("ProjetoLPOOE1PU");
         EntityManager em = emf.createEntityManager();
-
-        // Inicia uma transação
-        em.getTransaction().begin();
-
+        
         try {
-            // Criar um nutricionista
+            em.getTransaction().begin();
+
+            // Criando um nutricionista
             Nutricionista nutricionista = new Nutricionista();
-            nutricionista.setNome("Dr. João Nutri");
-            nutricionista.setDataNascimento(new Date(1980 - 1900, 1 - 1, 15));  // Data fictícia
-            nutricionista.setSexo("Masculino");
-            nutricionista.setRegistroProfissional("CRN-12345");
+            nutricionista.setNome("Dr. Andre");
+            nutricionista.setRegistroProfissional("12345");
+            nutricionista.setDataNascimento(new Date());
+            nutricionista.setSexo("M");
             em.persist(nutricionista);
 
-            // Criar um paciente
-            Paciente paciente = nutricionista.cadastrarPaciente("Maria Silva", new Date(1990 - 1900, 5 - 1, 10), "Feminino", 65.0f, 1.70f);
-            paciente.setPercentualGordura(20);
-            paciente.setPercentualMassaMagra(35);
+            // Cadastrando um paciente usando o método do Nutricionista
+            Paciente paciente = nutricionista.cadastrarPaciente("Carlos Silva", new Date(), "M", 80.5f, 1.75f);
             em.persist(paciente);
 
-            // Criar alimentos
-            Alimento arroz = new Alimento("Arroz", 130.0f, 0.2f, 2.5f, 0.3f, 28.0f, 100.0f);
-            Alimento feijao = new Alimento("Feijão", 95.0f, 8.0f, 6.0f, 0.5f, 15.0f, 100.0f);
-            Alimento frango = new Alimento("Frango", 165.0f, 0.0f, 31.0f, 3.6f, 0.0f, 100.0f);
-            em.persist(arroz);
-            em.persist(feijao);
-            em.persist(frango);
+            // Criando um alimento para adicionar à refeição
+            Alimento alimento1 = new Alimento("Arroz Integral", 130, 2, 3, 1, 28, 100);
+            Alimento alimento2 = new Alimento("Peito de Frango", 165, 0, 31, 3, 0, 100);
+            em.persist(alimento1);
+            em.persist(alimento2);
 
-            // Criar refeição com alimentos
-            List<Alimento> alimentosAlmoco = Arrays.asList(arroz, feijao, frango);
-            Refeicao almoco = nutricionista.criarRefeicao(TipoRefeicao.ALMOCO, alimentosAlmoco);
-            em.persist(almoco);
+            // Criando uma refeição usando o método do Nutricionista
+            List<Alimento> alimentos = Arrays.asList(alimento1, alimento2);
+            Refeicao refeicao = nutricionista.criarRefeicao(TipoRefeicao.ALMOCO, alimentos);
+            em.persist(refeicao);
 
-            // Criar dieta com a refeição
-            List<Refeicao> refeicoes = new ArrayList<>();
-            refeicoes.add(almoco);
-            Dieta dieta = nutricionista.criarDieta(new Date(), new Date(2024 - 1900, 11 - 1, 30), refeicoes);
-            paciente.getDietas().add(dieta);
+            // Criando uma dieta e associando-a ao paciente
+            List<Refeicao> refeicoes = Arrays.asList(refeicao);
+            Dieta dieta = nutricionista.criarDieta(new Date(), new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 30)), refeicoes);
             em.persist(dieta);
 
-            // Realizar um exame de dobras cutâneas
-            ExameDobrasCutaneas exame = nutricionista.realizarExame(10.0f, 20.0f, 12.0f, 14.0f, 18.0f, 15.0f, 30.0f, paciente);
-            exame.setIdade(34);
-            exame.setPercentualGordura(20.0f);  // Exemplo de cálculo de gordura
+            // Associando a dieta ao paciente
+            paciente.getDietas().add(dieta);
+            em.merge(paciente);
+
+            // Realizando um exame de dobras cutâneas no paciente
+            ExameDobrasCutaneas exame = nutricionista.realizarExame(12.5f, 10.0f, 8.5f, 7.0f, 15.0f, 9.0f, 11.0f, paciente);
             em.persist(exame);
 
-            // Finalizar a transação
             em.getTransaction().commit();
-
+            
             System.out.println("Dados persistidos com sucesso!");
 
         } catch (Exception e) {
-            e.printStackTrace();
             em.getTransaction().rollback();
+            e.printStackTrace();
         } finally {
             em.close();
             emf.close();

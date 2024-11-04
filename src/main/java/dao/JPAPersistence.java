@@ -5,32 +5,75 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
 public class JPAPersistence {
-    private EntityManagerFactory emf;
-    private EntityManager em;
+    private static final String PERSISTENCE_UNIT_NAME = "ProjetoLPOOE1PU";
+    private EntityManagerFactory factory;
+    private EntityManager entityManager;
 
+    // Abre uma conexão com o banco de dados
     public boolean openConnection() {
         try {
-            emf = Persistence.createEntityManagerFactory("ProjetoLPOOE1PU");
-            em = emf.createEntityManager();
+            factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+            entityManager = factory.createEntityManager();
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Erro ao abrir a conexão com o banco de dados: " + e.getMessage());
             return false;
         }
     }
 
+    // Fecha a conexão com o banco de dados
     public void closeConnection() {
-        if (em != null) em.close();
-        if (emf != null) emf.close();
+        if (entityManager != null && entityManager.isOpen()) {
+            entityManager.close();
+        }
+        if (factory != null && factory.isOpen()) {
+            factory.close();
+        }
     }
 
+    // Persiste um objeto no banco de dados
     public void persist(Object entity) {
-        em.getTransaction().begin();
-        em.persist(entity);
-        em.getTransaction().commit();
+        try {
+            entityManager.getTransaction().begin();
+            entityManager.persist(entity);
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw new RuntimeException("Erro ao persistir entidade: " + e.getMessage());
+        }
     }
 
-    public EntityManager getEntityManager() {
-        return em;
+    // Atualiza um objeto no banco de dados
+    public void update(Object entity) {
+        try {
+            entityManager.getTransaction().begin();
+            entityManager.merge(entity);
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw new RuntimeException("Erro ao atualizar entidade: " + e.getMessage());
+        }
+    }
+
+    // Remove um objeto do banco de dados
+    public void remove(Object entity) {
+        try {
+            entityManager.getTransaction().begin();
+            entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw new RuntimeException("Erro ao remover entidade: " + e.getMessage());
+        }
+    }
+
+    // Busca uma entidade pelo ID
+    public <T> T find(Class<T> entityClass, Object primaryKey) {
+        return entityManager.find(entityClass, primaryKey);
+    }
+
+    // Verifica se a conexão com o banco de dados está ativa
+    public boolean isConnected() {
+        return entityManager != null && entityManager.isOpen();
     }
 }
