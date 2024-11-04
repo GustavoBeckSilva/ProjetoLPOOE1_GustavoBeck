@@ -1,21 +1,26 @@
-
 package model;
 
 import jakarta.persistence.*;
 import java.util.Date;
 
-@Entity
+@MappedSuperclass
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Pessoa {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(length = 100, nullable = false)
     private String nome;
+
+    @Temporal(TemporalType.DATE)
     private Date dataNascimento;
+
+    @Column(length = 10)
     private String sexo;
 
-     // Construtores
+    // Construtor
     public Pessoa() {}
 
     // Getters e Setters

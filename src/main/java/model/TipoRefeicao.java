@@ -1,13 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Enum.java to edit this template
- */
+
 package model;
 
-/**
- *
- * @author User
- */
 public enum TipoRefeicao {
-    
+    CAFE_DA_MANHA, ALMOCO, JANTAR, LANCHE_DA_MANHA, LANCHE_DA_TARDE;
 }
